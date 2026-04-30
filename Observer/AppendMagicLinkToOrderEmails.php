@@ -89,7 +89,7 @@ class AppendMagicLinkToOrderEmails implements ObserverInterface
                     '',
                     [
                         'data' => [
-                            'template'            => 'MageMe_EUWithdrawal::email/withdrawal_link_snippet.phtml',
+                            'template'            => 'MageMe_EUWithdrawalMagicLink::email/withdrawal_link_snippet.phtml',
                             'withdrawal_link_url' => $url,
                         ],
                     ],
