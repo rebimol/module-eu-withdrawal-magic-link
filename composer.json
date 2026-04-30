@@ -1,0 +1,40 @@
+{
+  "name": "mageme/module-eu-withdrawal-magic-link",
+  "description": "One-click guest withdrawal access via signed 72h magic-link tokens (Art. 11a(1) UX upgrade) + sales-email overrides that inject the withdrawal CTA. Pro tier add-on for mageme/module-eu-withdrawal.",
+  "version": "0.1.0",
+  "type": "magento2-module",
+  "license": "proprietary",
+  "keywords": [
+    "magento2",
+    "consumer-protection",
+    "eu-compliance",
+    "withdrawal",
+    "magic-link",
+    "art-11a",
+    "directive-2011-83",
+    "mageme",
+    "pro-tier"
+  ],
+  "authors": [
+    {
+      "name": "MageMe",
+      "email": "support@mageme.com",
+      "homepage": "https://mageme.com",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": "~8.1.0||~8.2.0||~8.3.0||~8.4.0",
+    "mageme/module-eu-withdrawal": ">=0.11 <1.0",
+    "magento/framework": "^103.0",
+    "ext-intl": "*"
+  },
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "MageMe\\EUWithdrawalMagicLink\\": ""
+    }
+  }
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Override Lite's NoOpMagicLinkService with the DB-backed one. The
+         interface lives in Lite (Api/Token/MagicLinkServiceInterface);
+         this preference takes precedence when Pro is installed so the
+         lookup form starts issuing real 72h tokens, the order-confirmation
+         email gets a one-click withdrawal CTA, and the customer-identity
+         factory resolves ?t= URL params to bound order entities. -->
+    <preference for="MageMe\EUWithdrawal\Api\Token\MagicLinkServiceInterface"
+                type="MageMe\EUWithdrawalMagicLink\Model\Token\MagicLinkService"/>
+</config>

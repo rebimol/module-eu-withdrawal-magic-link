@@ -1,0 +1,105 @@
+MageMe Software License (End User License Agreement)
+
+Canonical text: https://mageme.com/license/
+Licensor: ACTEK d.o.o. (business ID 6515665000), a Slovenian private
+limited liability company doing business as "MageMe".
+Copyright (c) 2026 ACTEK d.o.o. All rights reserved.
+
+This is a legal agreement between the customer (the entity licensed to
+use the software) and ACTEK d.o.o. ("MageMe"). This License applies to
+all products, software, scripts, and services obtained from MageMe,
+including free products.
+
+The License takes effect when the customer installs, copies, or uses the
+software. Non-acceptance means the customer cannot install or use it.
+
+1. LICENSE
+
+MageMe grants a non-exclusive and non-transferable license to use the
+software without sublicensing rights, solely as stated herein. Only
+expressly granted rights apply.
+
+License types:
+  - Production license: authorises software usage on a single Magento
+    production instance.
+  - Development license: permits activation on a development Magento
+    instance for testing only; prohibits production website usage.
+
+The customer must purchase the License before downloading paid products.
+License rights take effect after purchase and download, or after
+download alone for free products (such as MageMe_EUWithdrawal Lite).
+
+2. COPYRIGHT
+
+The software contains proprietary copyrighted material. Creating
+derivative works or works based on the software - in whole or in part -
+for commercial or non-commercial distribution requires written MageMe
+permission. MageMe retains all right, title, and interest in and to the
+software, related documentation, and upgrades. All unexpressed rights
+are reserved to MageMe.
+
+3. RESTRICTIONS
+
+The software copy is licensed, not sold. The customer receives no title
+or ownership of any copy or the software itself.
+
+Prohibited activities:
+  - Modifying or creating derivative works (except personal use or
+    permitted license types).
+  - Giving, selling, distributing, sublicensing, renting, leasing, or
+    lending any software portion.
+  - Using software on Magento editions other than specified at purchase.
+  - Placing software (whole or partial) on servers where source code is
+    publicly accessible via networks or repositories.
+  - Removing identification, proprietary, copyright, or other notices.
+
+Liability for unauthorised use: the customer must either reimburse
+MageMe for License costs per unauthorised use case OR pay a contractual
+penalty of EUR 1,000 per unauthorised use case and compensate MageMe for
+additional costs or damages.
+
+4. WARRANTY
+
+Software is provided "AS IS" without warranties regarding uninterrupted
+usage or error elimination. MageMe's sole remedy involves providing
+error corrections, workarounds, upgrades, or - if impracticable -
+terminating the License with refund.
+
+Warranty exclusions:
+  - Modifications by non-MageMe parties.
+  - Defects from accident, abuse, or improper customer use.
+  - Software provided on a trial or non-commercial basis.
+  - Software incompatibility with customer hardware or software.
+
+5. LIABILITY LIMITATIONS
+
+MageMe bears no liability for consequential, incidental, or indirect
+damages (including lost profits, business interruption, or data loss)
+regardless of negligence. MageMe assumes no responsibility for illegal
+use prosecution.
+
+The aggregate MageMe liability is capped at the amount the customer
+paid for the respective License type.
+
+6. AMENDMENTS TO THIS AGREEMENT
+
+MageMe reserves the right to change this License and alter its clauses
+at any given time. Continued software use after published changes
+constitutes acceptance of the new terms. The canonical current text is
+always available at https://mageme.com/license/.
+
+7. TERMINATION
+
+MageMe may terminate the License at any time for any reason.
+Non-compliance results in automatic, immediate termination; the customer
+must cease use and destroy all copies. Termination does not obligate
+MageMe to return payments, and financial obligations survive
+termination.
+
+8. GOVERNING LAW
+
+This License is governed by and construed under Slovenian law.
+
+---
+
+For questions: legal@mageme.com

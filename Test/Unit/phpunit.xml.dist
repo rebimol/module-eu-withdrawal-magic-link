@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd" colors="true" columns="max" beStrictAboutTestsThatDoNotTestAnything="true" beStrictAboutOutputDuringTests="true" bootstrap="../../../../../../dev/tests/unit/framework/bootstrap.php" cacheDirectory=".phpunit.cache">
+  <extensions>
+    <bootstrap class="DG\BypassFinals\PHPUnitExtension"/>
+  </extensions>
+  <testsuites>
+    <testsuite name="MageMe EU Withdrawal Magic Link Unit Tests">
+      <directory>.</directory>
+      <exclude>_files</exclude>
+    </testsuite>
+  </testsuites>
+  <source>
+    <include>
+      <directory suffix=".php">../../</directory>
+    </include>
+    <exclude>
+      <directory>../../Test</directory>
+      <directory>../../etc</directory>
+      <directory>../../i18n</directory>
+    </exclude>
+  </source>
+</phpunit>

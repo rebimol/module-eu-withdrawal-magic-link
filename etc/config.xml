@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <!--
+            Override Magento_Sales transactional-email defaults so the order +
+            shipment emails ship with the withdrawal-link CTA out-of-the-box.
+            DB-stored merchant customisations win over these defaults — admins
+            who picked a custom template keep theirs.
+
+            These defaults moved to Pro (phase-35). Lite installs leave the
+            Magento defaults untouched; the lookup form is the only Lite-side
+            entry point for Art. 11a(1) guest withdrawal access.
+        -->
+        <sales_email>
+            <order>
+                <template>mageme_eu_withdrawal_sales_email_order_template</template>
+                <guest_template>mageme_eu_withdrawal_sales_email_order_guest_template</guest_template>
+            </order>
+            <shipment>
+                <template>mageme_eu_withdrawal_sales_email_shipment_template</template>
+                <guest_template>mageme_eu_withdrawal_sales_email_shipment_guest_template</guest_template>
+            </shipment>
+        </sales_email>
+    </default>
+</config>

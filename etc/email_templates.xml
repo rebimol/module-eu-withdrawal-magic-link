@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <!--
+        Sales / Shipment overrides registered by this Pro module. Lite's
+        etc/email_templates.xml never declared these — only Pro installs
+        get them, and only Pro installs point Magento's
+        sales_email/{order,shipment}/{template,guest_template} config
+        keys at them via etc/config.xml.
+    -->
+    <template id="mageme_eu_withdrawal_sales_email_order_template"
+              label="MageMe EU Withdrawal — Order Confirmation (with withdrawal link)"
+              file="sales_order_new.html"
+              type="html"
+              module="MageMe_EUWithdrawalMagicLink"
+              area="frontend"/>
+    <template id="mageme_eu_withdrawal_sales_email_order_guest_template"
+              label="MageMe EU Withdrawal — Guest Order Confirmation (with withdrawal link)"
+              file="sales_order_new_guest.html"
+              type="html"
+              module="MageMe_EUWithdrawalMagicLink"
+              area="frontend"/>
+    <template id="mageme_eu_withdrawal_sales_email_shipment_template"
+              label="MageMe EU Withdrawal — Shipment Notification (with withdrawal link)"
+              file="sales_shipment_new.html"
+              type="html"
+              module="MageMe_EUWithdrawalMagicLink"
+              area="frontend"/>
+    <template id="mageme_eu_withdrawal_sales_email_shipment_guest_template"
+              label="MageMe EU Withdrawal — Guest Shipment Notification (with withdrawal link)"
+              file="sales_shipment_new_guest.html"
+              type="html"
+              module="MageMe_EUWithdrawalMagicLink"
+              area="frontend"/>
+</config>
