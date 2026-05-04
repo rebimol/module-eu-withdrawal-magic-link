@@ -1,0 +1,64 @@
+<?php
+declare(strict_types=1);
+
+namespace MageMe\EUWithdrawalMagicLink\Model\Email;
+
+use MageMe\EUWithdrawal\Api\Email\WithdrawalLinkResolverInterface;
+use MageMe\EUWithdrawal\Api\Token\MagicLinkServiceInterface;
+use MageMe\EUWithdrawal\Model\Email\LookupWithdrawalLinkResolver;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
+
+/**
+ * Pro-tier resolver — issues (or reuses) a magic-link token (admin-configurable
+ * absolute lifetime, default 30 days) for the order and returns a one-click
+ * `?t=TOKEN` URL.
+ *
+ * Bound via DI <preference> in this module's etc/di.xml; replaces the Lite
+ * default `LookupWithdrawalLinkResolver`. The observer + email-template
+ * plumbing lives in Lite — this resolver only upgrades the URL behind the
+ * same CTA.
+ *
+ * Gated by the `mageme_eu_withdrawal/magic_link/enabled` config flag (per
+ * store-view). When disabled, delegates to `LookupWithdrawalLinkResolver`
+ * so the CTA falls back to the lookup-form URL — same behaviour as a
+ * Lite-only install. Useful for merchants who installed Pro but prefer the
+ * lookup-form floor without uninstalling, or for staged rollouts.
+ */
+class MagicLinkWithdrawalLinkResolver implements WithdrawalLinkResolverInterface
+{
+    public const XML_PATH_ENABLED = 'mageme_eu_withdrawal/magic_link/enabled';
+
+    /**
+     * Constructor.
+     *
+     * @param MagicLinkServiceInterface $magicLinkService
+     * @param StoreManagerInterface $storeManager
+     * @param ScopeConfigInterface $scopeConfig
+     * @param LookupWithdrawalLinkResolver $fallbackResolver
+     */
+    public function __construct(
+        private readonly MagicLinkServiceInterface $magicLinkService,
+        private readonly StoreManagerInterface $storeManager,
+        private readonly ScopeConfigInterface $scopeConfig,
+        private readonly LookupWithdrawalLinkResolver $fallbackResolver,
+    ) {
+    }
+
+    /**
+     * Resolve for order.
+     *
+     * @param int $orderEntityId
+     * @return string
+     */
+    public function resolveForOrder(int $orderEntityId): string
+    {
+        if (!$this->scopeConfig->isSetFlag(self::XML_PATH_ENABLED, ScopeInterface::SCOPE_STORE)) {
+            return $this->fallbackResolver->resolveForOrder($orderEntityId);
+        }
+        $token = $this->magicLinkService->issueOrReuseForOrder($orderEntityId);
+        $base  = rtrim((string) $this->storeManager->getStore()->getBaseUrl(), '/');
+        return $base . '/withdraw-contract?t=' . $token;
+    }
+}

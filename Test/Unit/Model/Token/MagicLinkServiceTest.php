@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace MageMe\EUWithdrawalMagicLink\Test\Unit\Model\Token;
 
 use MageMe\EUWithdrawalMagicLink\Api\Data\MagicLinkInterface;
+use MageMe\EUWithdrawalMagicLink\Model\Config\MagicLinkConfig;
 use MageMe\EUWithdrawalMagicLink\Model\MagicLink;
 use MageMe\EUWithdrawalMagicLink\Model\MagicLinkFactory;
 use MageMe\EUWithdrawalMagicLink\Model\ResourceModel\MagicLink as MagicLinkResource;
@@ -114,14 +115,11 @@ class MagicLinkServiceTest extends TestCase
         self::assertNull($service->resolveOrder('plain-token'));
     }
 
-    public function testResolveOrderReturnsNullWhenRollingWindowExceeded(): void
+    public function testResolveOrderReturnsNullWhenAbsoluteTtlExceeded(): void
     {
         $tzUtc = new \DateTimeZone('UTC');
-        $lastAccessedAt = (new \DateTimeImmutable('now', $tzUtc))
-            ->modify('-25 hours')
-            ->format('Y-m-d H:i:s');
         $expiresAt = (new \DateTimeImmutable('now', $tzUtc))
-            ->modify('+60 minutes')
+            ->modify('-1 hour')
             ->format('Y-m-d H:i:s');
 
         $row = $this->createMock(MagicLink::class);
@@ -129,9 +127,9 @@ class MagicLinkServiceTest extends TestCase
         $row->method('getOrderId')->willReturn(999);
         $row->method('getRevokedAt')->willReturn(null);
         $row->method('getUsedAt')->willReturn(null);
-        $row->method('getFirstAccessedAt')->willReturn('2026-04-20 10:00:00');
-        $row->method('getLastAccessedAt')->willReturn($lastAccessedAt);
+        $row->method('getFirstAccessedAt')->willReturn(null);
         $row->method('getExpiresAt')->willReturn($expiresAt);
+
         $collection = $this->createMock(Collection::class);
         $collection->method('addFieldToFilter')->willReturnSelf();
         $collection->method('getFirstItem')->willReturn($row);
@@ -177,7 +175,7 @@ class MagicLinkServiceTest extends TestCase
         self::assertNotNull($captured);
         self::assertSame('mageme_eu_withdrawal_audit_token_issued', $captured['topic']);
         self::assertSame(555, $captured['payload']['order_id']);
-        self::assertSame(72 * 3600, $captured['payload']['ttl_seconds']);
+        self::assertSame(3 * 86400, $captured['payload']['ttl_seconds']);
         self::assertIsString($captured['payload']['token']);
         self::assertNotEmpty($captured['payload']['token']);
         self::assertSame($plain, $captured['payload']['token']);
@@ -502,12 +500,18 @@ class MagicLinkServiceTest extends TestCase
         MagicLinkResource $resource,
         CollectionFactory $collectionFactory,
         ?ManagerInterface $eventManager = null,
+        ?MagicLinkConfig $config = null,
     ): MagicLinkService {
+        if ($config === null) {
+            $config = $this->createMock(MagicLinkConfig::class);
+            $config->method('getLifetimeDays')->willReturn(3);
+        }
         return new MagicLinkService(
             $modelFactory,
             $resource,
             $collectionFactory,
             $eventManager ?? $this->createMock(ManagerInterface::class),
+            $config,
         );
     }
 }

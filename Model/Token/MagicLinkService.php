@@ -5,6 +5,7 @@ namespace MageMe\EUWithdrawalMagicLink\Model\Token;
 
 use MageMe\EUWithdrawal\Api\Token\MagicLinkServiceInterface;
 use MageMe\EUWithdrawalMagicLink\Api\Data\MagicLinkInterface;
+use MageMe\EUWithdrawalMagicLink\Model\Config\MagicLinkConfig;
 use MageMe\EUWithdrawalMagicLink\Model\MagicLinkFactory;
 use MageMe\EUWithdrawalMagicLink\Model\ResourceModel\MagicLink as MagicLinkResource;
 use MageMe\EUWithdrawalMagicLink\Model\ResourceModel\MagicLink\CollectionFactory;
@@ -24,8 +25,6 @@ use Magento\Framework\Event\ManagerInterface;
  */
 class MagicLinkService implements MagicLinkServiceInterface
 {
-    public const INITIAL_TTL_HOURS = 72;
-    public const ROLLING_TTL_HOURS = 24;
     public const REVOKE_GRACE_SECONDS = 300;
 
     /**
@@ -35,12 +34,14 @@ class MagicLinkService implements MagicLinkServiceInterface
      * @param MagicLinkResource $resource
      * @param CollectionFactory $collectionFactory
      * @param ManagerInterface $eventManager
+     * @param MagicLinkConfig $config
      */
     public function __construct(
         private readonly MagicLinkFactory $modelFactory,
         private readonly MagicLinkResource $resource,
         private readonly CollectionFactory $collectionFactory,
         private readonly ManagerInterface $eventManager,
+        private readonly MagicLinkConfig $config,
     ) {
     }
 
@@ -56,7 +57,8 @@ class MagicLinkService implements MagicLinkServiceInterface
         $hash = hash('sha256', $plain);
 
         $now = $this->utcNow();
-        $expiresAt = gmdate('Y-m-d H:i:s', time() + self::INITIAL_TTL_HOURS * 3600);
+        $ttlSeconds = $this->config->getLifetimeDays() * 86400;
+        $expiresAt = gmdate('Y-m-d H:i:s', time() + $ttlSeconds);
 
         /** @var \MageMe\EUWithdrawalMagicLink\Model\MagicLink $row */
         $row = $this->modelFactory->create();
@@ -69,7 +71,7 @@ class MagicLinkService implements MagicLinkServiceInterface
         $this->eventManager->dispatch('mageme_eu_withdrawal_audit_token_issued', [
             'order_id'    => $orderEntityId,
             'token'       => $plain,
-            'ttl_seconds' => self::INITIAL_TTL_HOURS * 3600,
+            'ttl_seconds' => $ttlSeconds,
         ]);
 
         return $plain;
@@ -138,20 +140,12 @@ class MagicLinkService implements MagicLinkServiceInterface
 
         $now = time();
         $expires = $this->parseUtc((string) $row->getExpiresAt());
-        $firstAccess = $row->getFirstAccessedAt();
-
-        if ($firstAccess === null && $now > $expires) {
+        if ($now > $expires) {
             return null;
-        }
-        if ($firstAccess !== null) {
-            $lastAccess = $this->parseUtc((string) $row->getLastAccessedAt());
-            if ($now > $lastAccess + self::ROLLING_TTL_HOURS * 3600) {
-                return null;
-            }
         }
 
         $nowStr = gmdate('Y-m-d H:i:s', $now);
-        if ($firstAccess === null) {
+        if ($row->getFirstAccessedAt() === null) {
             $row->setFirstAccessedAt($nowStr);
         }
         $row->setLastAccessedAt($nowStr);
