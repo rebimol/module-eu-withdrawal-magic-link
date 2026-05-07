@@ -15,15 +15,15 @@ use Magento\Store\Model\StoreManagerInterface;
  * absolute lifetime, default 30 days) for the order and returns a one-click
  * `?t=TOKEN` URL.
  *
- * Bound via DI <preference> in this module's etc/di.xml; replaces the Lite
+ * Bound via DI <preference> in this module's etc/di.xml; replaces the Free
  * default `LookupWithdrawalLinkResolver`. The observer + email-template
- * plumbing lives in Lite — this resolver only upgrades the URL behind the
+ * plumbing lives in the base module — this resolver only upgrades the URL behind the
  * same CTA.
  *
  * Gated by the `mageme_eu_withdrawal/magic_link/enabled` config flag (per
  * store-view). When disabled, delegates to `LookupWithdrawalLinkResolver`
  * so the CTA falls back to the lookup-form URL — same behaviour as a
- * Lite-only install. Useful for merchants who installed Pro but prefer the
+ * module-only install. Useful for merchants who installed Pro but prefer the
  * lookup-form floor without uninstalling, or for staged rollouts.
  */
 class MagicLinkWithdrawalLinkResolver implements WithdrawalLinkResolverInterface

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <!-- Override Lite's NoOpMagicLinkService with the DB-backed one. The
-         interface lives in Lite (Api/Token/MagicLinkServiceInterface);
+    <!-- Override the base module's NoOpMagicLinkService with the DB-backed one. The
+         interface lives in the base module (Api/Token/MagicLinkServiceInterface);
          this preference takes precedence when Pro is installed so the
          lookup form starts issuing real magic-link tokens, the order-confirmation
          email gets a one-click withdrawal CTA, and the customer-identity
@@ -11,9 +11,9 @@
                 type="MageMe\EUWithdrawalMagicLink\Model\Token\MagicLinkService"/>
 
     <!-- Upgrade the withdrawal-CTA URL in order/shipment emails from the
-         Lite default (lookup-form URL) to a tokenised one-click URL.
+         Default (lookup-form URL) to a tokenised one-click URL.
          The observer, email templates, and snippet block all live in
-         Lite — Pro only swaps the URL via this preference. -->
+         Free — Pro only swaps the URL via this preference. -->
     <preference for="MageMe\EUWithdrawal\Api\Email\WithdrawalLinkResolverInterface"
                 type="MageMe\EUWithdrawalMagicLink\Model\Email\MagicLinkWithdrawalLinkResolver"/>
 </config>

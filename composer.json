@@ -1,6 +1,6 @@
 {
   "name": "mageme/module-eu-withdrawal-magic-link",
-  "description": "One-click guest withdrawal access via signed 72h magic-link tokens. Upgrades the withdrawal-CTA URL in order/shipment emails (shipped by Lite) from the lookup-form URL to a tokenised one-click variant. Pro tier UX add-on for mageme/module-eu-withdrawal. NOT legal advice — see README disclaimer; merchant is responsible for transactional-email compliance per jurisdiction.",
+  "description": "One-click guest withdrawal access via signed 72h magic-link tokens. Upgrades the withdrawal-CTA URL in order/shipment emails (shipped by the base module) from the lookup-form URL to a tokenised one-click variant. Pro tier UX add-on for mageme/module-eu-withdrawal. NOT legal advice — see README disclaimer; merchant is responsible for transactional-email compliance per jurisdiction.",
   "version": "0.1.2",
   "type": "magento2-module",
   "license": "proprietary",
