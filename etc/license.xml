@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:MageMe_Core:etc/license.xsd">
+    <module name="MageMe_EUWithdrawalMagicLink">
+        <license section="mageme_eu_withdrawal" tier="pro">
+            <code platform="M2CE">EUWPC</code>
+            <code platform="M2EE">EUWPE</code>
+        </license>
+    </module>
+</config>
