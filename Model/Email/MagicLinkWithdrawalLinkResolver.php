@@ -6,6 +6,7 @@ namespace MageMe\EUWithdrawalMagicLink\Model\Email;
 use MageMe\EUWithdrawal\Api\Email\WithdrawalLinkResolverInterface;
 use MageMe\EUWithdrawal\Api\Token\MagicLinkServiceInterface;
 use MageMe\EUWithdrawal\Model\Email\LookupWithdrawalLinkResolver;
+use MageMe\EUWithdrawal\Model\Frontend\RouteResolver;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -37,12 +38,14 @@ class MagicLinkWithdrawalLinkResolver implements WithdrawalLinkResolverInterface
      * @param StoreManagerInterface $storeManager
      * @param ScopeConfigInterface $scopeConfig
      * @param LookupWithdrawalLinkResolver $fallbackResolver
+     * @param RouteResolver $routeResolver
      */
     public function __construct(
         private readonly MagicLinkServiceInterface $magicLinkService,
         private readonly StoreManagerInterface $storeManager,
         private readonly ScopeConfigInterface $scopeConfig,
         private readonly LookupWithdrawalLinkResolver $fallbackResolver,
+        private readonly RouteResolver $routeResolver,
     ) {
     }
 
@@ -50,15 +53,19 @@ class MagicLinkWithdrawalLinkResolver implements WithdrawalLinkResolverInterface
      * Resolve for order.
      *
      * @param int $orderEntityId
+     * @param ?int $storeId
      * @return string
      */
-    public function resolveForOrder(int $orderEntityId): string
+    public function resolveForOrder(int $orderEntityId, ?int $storeId = null): string
     {
-        if (!$this->scopeConfig->isSetFlag(self::XML_PATH_ENABLED, ScopeInterface::SCOPE_STORE)) {
-            return $this->fallbackResolver->resolveForOrder($orderEntityId);
+        if (!$this->scopeConfig->isSetFlag(self::XML_PATH_ENABLED, ScopeInterface::SCOPE_STORE, $storeId)) {
+            return $this->fallbackResolver->resolveForOrder($orderEntityId, $storeId);
         }
         $token = $this->magicLinkService->issueOrReuseForOrder($orderEntityId);
-        $base  = rtrim((string) $this->storeManager->getStore()->getBaseUrl(), '/');
-        return $base . '/withdraw-contract?t=' . $token;
+        $base  = rtrim((string) $this->storeManager->getStore($storeId)->getBaseUrl(), '/');
+        return $this->routeResolver->rewriteCanonical(
+            $base . '/' . RouteResolver::CANONICAL_FRONT_NAME . '?t=' . $token,
+            $storeId,
+        );
     }
 }
