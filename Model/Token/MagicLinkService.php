@@ -161,26 +161,6 @@ class MagicLinkService implements MagicLinkServiceInterface
     }
 
     /**
-     * Idempotent stamp — only sets used_at on a row that's still active.
-     * Re-checks revoked_at + used_at after the second lookup to close the
-     * narrow race where the row becomes revoked between resolveOrder() and
-     * markUsed() (today the only caller is RequestCreator immediately after
-     * a successful resolve, but the guard is cheap and prevents footguns).
-     */
-    public function markUsed(string $plainToken): void
-    {
-        $row = $this->findByPlainToken($plainToken);
-        if ($row === null) {
-            return;
-        }
-        if ($row->getRevokedAt() !== null || $row->getUsedAt() !== null) {
-            return;
-        }
-        $row->setUsedAt($this->utcNow());
-        $this->resource->save($row);
-    }
-
-    /**
      * Revoke.
      *
      * @param int $orderEntityId
