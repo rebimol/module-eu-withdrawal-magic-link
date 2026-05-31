@@ -1,64 +1,65 @@
-# MageMe_EUWithdrawalMagicLink
+# MageMe EU Withdrawal — Magic Link (Pro)
 
-**Version:** 0.1.2 (pre-release)
-**Composer:** `mageme/module-eu-withdrawal-magic-link`
-**Requires:** `mageme/module-eu-withdrawal: >=0.12.9 <1.0` (base module)
-**Tier:** Pro add-on
+> One-click guest withdrawal access — the "Withdraw from contract" link in order and shipment emails takes the customer straight to their request, with no order lookup required.
 
-Pro tier UX upgrade for `MageMe_EUWithdrawal` (base module). Issues signed `?t=TOKEN` magic-link tokens with a configurable absolute lifetime (admin-controlled, default 30 days). Tokens are persisted in `mm_eu_withdrawal_magic_link` as SHA-256 hashes (plaintext never stored). Swaps the base module's withdrawal-CTA URL in order/shipment emails from the lookup-form URL to the tokenised one-click variant.
+[![Magento](https://img.shields.io/badge/Magento-2.4.4%20–%202.4.9-EE672F.svg?style=flat-square)](https://magento.com)
+[![PHP](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3%20%7C%208.4%20%7C%208.5-777BB4.svg?style=flat-square)](https://php.net)
+[![Tier](https://img.shields.io/badge/tier-Pro-6E56CF.svg?style=flat-square)](https://mageme.com/eu-withdrawal-pro)
+[![License](https://img.shields.io/badge/license-MageMe%20EULA-blue.svg?style=flat-square)](https://mageme.com/license/)
 
-## What it does (technical features)
+Pro-tier UX add-on for [`mageme/module-eu-withdrawal`](https://github.com/mageme/module-eu-withdrawal). Upgrades the withdrawal call-to-action in order and shipment confirmation emails from the lookup form to a signed one-click link.
 
-1. **`mm_eu_withdrawal_magic_link`** table — per-order tokens. SHA-256 hashes only (plaintext never persisted). Columns: token_id, order_id, token_hash, issued_at, expires_at, first_accessed_at, last_accessed_at, used_at, revoked_at.
-2. **`Model\Token\MagicLinkService`** — implements the base module's `MagicLinkServiceInterface`. Methods: `issueOrReuseForOrder(int): string`, `resolveOrder(string): ?int`, `revoke(int): void`. Emits `mageme_eu_withdrawal_audit_token_{issued,used}` events for the audit trail (consumed by `MageMe_EUWithdrawalAudit` if also installed).
-3. **`Model\Email\MagicLinkWithdrawalLinkResolver`** — implements the base module's `WithdrawalLinkResolverInterface`. Returns `https://example.com/withdraw-contract?t=TOKEN` instead of the base default `/withdraw-contract/`. The withdrawal-CTA observer, snippet block, phtml, and the four sales-email overrides all live in the base module — Pro only swaps the URL via DI `<preference>`.
-4. **Admin toggle** — `Stores → Configuration → MageMe Extensions → EU Withdrawal → Magic Link (Pro) → Enable Magic Link` (store-view scope). Default after install: **Yes**. When set to **No**, the Pro resolver delegates to the base module's `LookupWithdrawalLinkResolver` and the CTA falls back to the lookup-form URL — same behaviour as a module-only install, no need to uninstall Pro for staged rollouts. Already-issued tokens keep resolving until their TTL expires.
-5. **Token lifecycle** — single absolute lifetime configurable via `Stores → Configuration → MageMe Extensions → EU Withdrawal → Magic Link (Pro) → Token Lifetime (days)` (default `30`, store-view scope, read by `Model\Config\MagicLinkConfig::getLifetimeDays()`). The token resolves while `now <= expires_at`; once revoked or expired, it stops resolving. It is reusable for that whole window — the same link drives the multi-step lookup → form → submit flow and any repeat/partial withdrawals. `first_accessed_at` / `last_accessed_at` are stamped on every successful resolve for audit purposes only — they no longer gate access.
-6. **Race-protection grace window** — `REVOKE_GRACE_SECONDS = 300`. When the same order triggers a re-send (e.g. order-confirmation + shipment-notification within 5 minutes), the existing token is reused; older tokens (>5 min) are revoked.
+**[Documentation](https://docs.mageme.com)** · **[Get EU Withdrawal Pro](https://mageme.com/eu-withdrawal-pro)**
 
-## ⚠️ Disclaimer
+---
 
-This module is provided **AS-IS, WITHOUT WARRANTY OF ANY KIND**. It is a UX feature add-on. **Whether the magic-link CTA satisfies your jurisdiction's specific marketing-email or transactional-email rules (e.g. PECR, ePrivacy Directive, national email-marketing transpositions) is a question for your counsel.**
+## What it does
 
-The vendor (MageMe / ACTEK d.o.o., Slovenia) makes **no claim** that:
+- Signed **magic-link tokens** (`?t=…`) behind the "Withdraw from contract" CTA in order and shipment confirmation emails — one click takes the guest straight to their withdrawal, no manual order lookup.
+- A **configurable lifetime** (default 30 days, per store view); the link is reusable across the multi-step flow within its window.
+- An **admin toggle** to enable or disable per store view — when disabled, the CTA falls back to the standard lookup form, so you can stage the rollout without uninstalling.
+- Tokens are scoped to a **single order** and stored as **SHA-256 hashes** (plaintext is never persisted); they grant the withdrawal flow only, never account access.
 
-- Magic-link tokens are immune to phishing, credential-stuffing, or token-replay attacks (the absolute lifetime is a trade-off; configure a shorter `Token Lifetime` if your threat model requires)
-- The injected CTA is appropriate for your transactional-email design — modify the `WithdrawalLinkSnippet` block (base module side) as needed
+The CTA placement and email templates live in the base module — this add-on only swaps the link behind them.
 
-The merchant is solely responsible for legal-context evaluation. By installing this module you accept these terms.
+## Requirements
 
-See the parent module's [LICENSE](../EUWithdrawal/LICENSE) and [README disclaimer](../EUWithdrawal/README.md#-disclaimer-—-please-read-before-installing) for full terms.
+- **EU Withdrawal** base module (pulled automatically) — Magento **2.4.4–2.4.9**, **PHP 8.1–8.5**
+- A valid **EU Withdrawal Pro** licence
 
-## Installation
+## Install
+
+Pro modules are distributed through the private MageMe Composer repository. Add it once with the credentials from your purchase, then require the package:
 
 ```bash
+composer config repositories.mageme composer https://repo.mageme.com
 composer require mageme/module-eu-withdrawal-magic-link
 bin/magento module:enable MageMe_EUWithdrawalMagicLink
 bin/magento setup:upgrade
-bin/magento setup:di:compile
 bin/magento cache:flush
 ```
 
-The withdrawal-CTA placement and template wire-up are managed by the base module (see `MageMe_EUWithdrawal` README → "Adding the withdrawal CTA to your email template"). Installing this Pro module changes the URL behind the CTA from the lookup form to a tokenised one-click variant — nothing else.
+## Configuration
 
-## What it doesn't do
+**Stores → Configuration → MageMe Extensions → EU Withdrawal → Magic Link (Pro)**
 
-- Replace customer login. Magic links are scoped to **one order** — they bind a guest's session to that order entity for the withdrawal flow only. The customer cannot use the token to access account features, change the order, or log in.
-- Provide email-deliverability guarantees. The token is generated and the URL is shipped; whether the email actually reaches the inbox depends on the merchant's SMTP / mail-service setup.
-- Sign or encrypt the token URL. The token is a 32-byte random hex string; security relies on (a) collision resistance of the random space (~10^77 keyspace), (b) SHA-256 hash storage so a DB leak doesn't reveal active tokens, and (c) TTL.
-
-## Database
-
-| Table | Purpose |
+| Setting | Default |
 |---|---|
-| `mm_eu_withdrawal_magic_link` | Per-order tokens. SHA-256 hashes only. Validity check on `resolveOrder()`. |
+| Enable Magic Link | Yes |
+| Token Lifetime (days) | 30 |
 
-## Tests
+## Support
 
-```bash
-docker exec -u magento dev_php vendor/bin/phpunit -c app/code/MageMe/EUWithdrawalMagicLink/Test/Unit/phpunit.xml.dist
-```
+- Documentation: [docs.mageme.com](https://docs.mageme.com)
 
-## Licence
+## Legal disclaimer
 
-MageMe EULA — commercial. See https://mageme.com/license/. Licensor: ACTEK d.o.o., Slovenia.
+Provided **AS-IS, without warranty**, and **not legal advice**. The token lifetime is a security trade-off — set a shorter lifetime if your threat model requires. Whether the CTA suits your transactional-email rules is the merchant's responsibility. See the base module's [full disclaimer](https://docs.mageme.com).
+
+## License
+
+Governed by the **MageMe End User License Agreement** ([mageme.com/license](https://mageme.com/license/)). Licensor: ACTEK d.o.o., Slovenia. Pro requires a paid commercial licence.
+
+---
+
+**MageMe** builds high-quality Magento 2 extensions focused on compliance, conversion, and B2B. → [Browse all extensions on mageme.com](https://mageme.com/extensions)

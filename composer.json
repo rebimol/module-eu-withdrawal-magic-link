@@ -18,17 +18,14 @@
   "authors": [
     {
       "name": "MageMe",
-      "email": "support@mageme.com",
       "homepage": "https://mageme.com",
       "role": "Developer"
     }
   ],
   "require": {
-    "php": "~8.1.0||~8.2.0||~8.3.0||~8.4.0",
+    "php": "~8.1.0||~8.2.0||~8.3.0||~8.4.0||~8.5.0",
     "mageme/module-core": "^1.1 || ^2.0",
-    "mageme/module-eu-withdrawal": "^1.0",
-    "magento/framework": "^103.0",
-    "ext-intl": "*"
+    "mageme/module-eu-withdrawal": "^1.0"
   },
   "autoload": {
     "files": [
