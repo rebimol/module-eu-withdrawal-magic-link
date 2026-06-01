@@ -68,4 +68,4 @@ Governed by the **MageMe End User License Agreement** ([mageme.com/license](http
 
 ---
 
-**MageMe** builds Magento 2 and Adobe Commerce extensions for B2B merchants — form building, quoting, catalog control, and EU compliance. → [Browse all extensions](https://mageme.com/extensions)
+**MageMe** builds Magento 2 and Adobe Commerce extensions for B2B merchants — form building, quoting, catalog control, and EU compliance.
