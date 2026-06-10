@@ -1,3 +1,7 @@
+## 1.0.1
+
+* Other: Aligned the EU Withdrawal core dependency requirement with the 2.x line.
+
 ## 1.0.0
 
 + New: First public release. One-click guest withdrawal access via signed magic-link tokens — the "Withdraw from contract" link in order and shipment confirmation emails takes the customer straight to their request, with no order lookup required.

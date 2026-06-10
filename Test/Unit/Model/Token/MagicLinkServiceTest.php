@@ -69,7 +69,7 @@ class MagicLinkServiceTest extends TestCase
 
     public function testResolveOrderReturnsOrderIdAndUpdatesAccessTimestamps(): void
     {
-        $now = new \DateTimeImmutable();
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $expiresAt = $now->modify('+60 minutes')->format('Y-m-d H:i:s');
 
         $row = $this->createMock(MagicLink::class);
@@ -187,7 +187,7 @@ class MagicLinkServiceTest extends TestCase
 
     public function testResolveOrderDispatchesTokenUsedAuditEventOnSuccess(): void
     {
-        $now = new \DateTimeImmutable();
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $expiresAt = $now->modify('+60 minutes')->format('Y-m-d H:i:s');
 
         $row = $this->createMock(MagicLink::class);
