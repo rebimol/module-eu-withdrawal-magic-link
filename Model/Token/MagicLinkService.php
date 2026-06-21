@@ -53,15 +53,16 @@ class MagicLinkService implements MagicLinkServiceInterface
      * Issue for order.
      *
      * @param int $orderEntityId
+     * @param ?int $storeId
      * @return string
      */
-    public function issueForOrder(int $orderEntityId): string
+    public function issueForOrder(int $orderEntityId, ?int $storeId = null): string
     {
         $plain = $this->generatePlainToken();
         $hash = hash('sha256', $plain);
 
         $now = $this->utcNow();
-        $ttlSeconds = $this->config->getLifetimeDays() * 86400;
+        $ttlSeconds = $this->config->getLifetimeDays($storeId) * 86400;
         $expiresAt = gmdate('Y-m-d H:i:s', time() + $ttlSeconds);
 
         /** @var \MageMe\EUWithdrawalMagicLink\Model\MagicLink $row */
@@ -96,10 +97,10 @@ class MagicLinkService implements MagicLinkServiceInterface
      * Do NOT "optimise" this to reuse an existing row — that would require
      * storing plaintext, which violates the hash-only storage model.
      */
-    public function issueOrReuseForOrder(int $orderEntityId): string
+    public function issueOrReuseForOrder(int $orderEntityId, ?int $storeId = null): string
     {
         $this->revokeStaleUsableRowsForOrder($orderEntityId);
-        return $this->issueForOrder($orderEntityId);
+        return $this->issueForOrder($orderEntityId, $storeId);
     }
 
     /**
@@ -148,18 +149,21 @@ class MagicLinkService implements MagicLinkServiceInterface
             return null;
         }
 
+        $isFirstAccess = $row->getFirstAccessedAt() === null;
         $nowStr = gmdate('Y-m-d H:i:s', $now);
-        if ($row->getFirstAccessedAt() === null) {
+        if ($isFirstAccess) {
             $row->setFirstAccessedAt($nowStr);
         }
         $row->setLastAccessedAt($nowStr);
         $this->resource->save($row);
 
-        $this->eventManager->dispatch('mageme_eu_withdrawal_audit_token_used', [
-            'order_id' => (int) $row->getOrderId(),
-            'token'    => $plainToken,
-            'used_at'  => gmdate('c'),
-        ]);
+        if ($isFirstAccess) {
+            $this->eventManager->dispatch('mageme_eu_withdrawal_audit_token_used', [
+                'order_id' => (int) $row->getOrderId(),
+                'token'    => $plainToken,
+                'used_at'  => gmdate('c'),
+            ]);
+        }
 
         return $row->getOrderId();
     }

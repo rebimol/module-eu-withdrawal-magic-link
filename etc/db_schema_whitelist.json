@@ -16,7 +16,9 @@
             "MM_EU_WITHDRAWAL_MAGIC_LINK_ORDER_ID": true
         },
         "constraint": {
-            "PRIMARY": true
+            "PRIMARY": true,
+            "MM_EU_WITHDRAWAL_MAGIC_LINK_TOKEN_HASH": true,
+            "MM_EU_WITHDRAWAL_MAGIC_LINK_ORDER_ID_SALES_ORDER_ENTITY_ID": true
         }
     }
 }

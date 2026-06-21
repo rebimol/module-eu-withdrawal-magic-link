@@ -234,6 +234,39 @@ class MagicLinkServiceTest extends TestCase
         );
     }
 
+    public function testResolveOrderDoesNotDispatchTokenUsedOnRepeatAccess(): void
+    {
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $expiresAt = $now->modify('+60 minutes')->format('Y-m-d H:i:s');
+
+        $row = $this->createMock(MagicLink::class);
+        $row->method('getTokenId')->willReturn(42);
+        $row->method('getOrderId')->willReturn(999);
+        $row->method('getRevokedAt')->willReturn(null);
+        $row->method('getUsedAt')->willReturn(null);
+        $row->method('getFirstAccessedAt')->willReturn('2026-01-01 00:00:00');
+        $row->method('getExpiresAt')->willReturn($expiresAt);
+        $row->expects(self::never())->method('setFirstAccessedAt');
+        $row->expects(self::once())->method('setLastAccessedAt')->with(self::isType('string'));
+
+        $collection = $this->createMock(Collection::class);
+        $collection->method('addFieldToFilter')->willReturnSelf();
+        $collection->method('getFirstItem')->willReturn($row);
+        $collectionFactory = $this->createMock(CollectionFactory::class);
+        $collectionFactory->method('create')->willReturn($collection);
+
+        $modelFactory = $this->createMock(MagicLinkFactory::class);
+        $resource = $this->createMock(MagicLinkResource::class);
+        $resource->expects(self::once())->method('save')->with($row);
+
+        $eventManager = $this->createMock(ManagerInterface::class);
+        $eventManager->expects(self::never())->method('dispatch');
+
+        $service = $this->makeService($modelFactory, $resource, $collectionFactory, $eventManager);
+
+        self::assertSame(999, $service->resolveOrder('plain-token'));
+    }
+
     public function testResolveOrderDoesNotDispatchWhenTokenInvalid(): void
     {
         $collection = $this->createMock(Collection::class);

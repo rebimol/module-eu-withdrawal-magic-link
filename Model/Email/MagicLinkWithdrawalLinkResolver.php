@@ -65,7 +65,7 @@ class MagicLinkWithdrawalLinkResolver implements WithdrawalLinkResolverInterface
         if (!$this->scopeConfig->isSetFlag(self::XML_PATH_ENABLED, ScopeInterface::SCOPE_STORE, $storeId)) {
             return $this->fallbackResolver->resolveForOrder($orderEntityId, $storeId);
         }
-        $token = $this->magicLinkService->issueOrReuseForOrder($orderEntityId);
+        $token = $this->magicLinkService->issueOrReuseForOrder($orderEntityId, $storeId);
         $base  = rtrim((string) $this->storeManager->getStore($storeId)->getBaseUrl(), '/');
         return $this->routeResolver->rewriteCanonical(
             $base . '/' . RouteResolver::CANONICAL_FRONT_NAME . '?t=' . $token,

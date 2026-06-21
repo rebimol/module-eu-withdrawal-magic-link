@@ -7,7 +7,7 @@
 [![Tier](https://img.shields.io/badge/tier-Pro-6E56CF.svg?style=flat-square)](https://mageme.com/magento-2-withdrawal-button-extension.html)
 [![License](https://img.shields.io/badge/license-MageMe%20EULA-blue.svg?style=flat-square)](https://mageme.com/license/)
 
-Pro-tier UX add-on for [`mageme/module-eu-withdrawal`](https://github.com/mageme/module-eu-withdrawal). Upgrades the withdrawal call-to-action in order and shipment confirmation emails from the lookup form to a signed one-click link.
+Pro-tier UX add-on for [`mageme/module-eu-withdrawal`](https://github.com/mageme/module-eu-withdrawal). Upgrades the withdrawal call-to-action in order and shipment confirmation emails from the lookup form to a tokenised one-click link.
 
 **[Documentation](https://docs.mageme.com)** · **[Get EU Withdrawal Pro](https://mageme.com/magento-2-withdrawal-button-extension.html)**
 
@@ -15,7 +15,7 @@ Pro-tier UX add-on for [`mageme/module-eu-withdrawal`](https://github.com/mageme
 
 ## What it does
 
-- Signed **magic-link tokens** (`?t=…`) behind the "Withdraw from contract" CTA in order and shipment confirmation emails — one click takes the guest straight to their withdrawal, no manual order lookup.
+- **Magic-link tokens** (256-bit random, `?t=…`) behind the "Withdraw from contract" CTA in order and shipment confirmation emails — one click takes the guest straight to their withdrawal, no manual order lookup.
 - A **configurable lifetime** (default 30 days, per store view); the link is reusable across the multi-step flow within its window.
 - An **admin toggle** to enable or disable per store view — when disabled, the CTA falls back to the standard lookup form, so you can stage the rollout without uninstalling.
 - Tokens are scoped to a **single order** and stored as **SHA-256 hashes** (plaintext is never persisted); they grant the withdrawal flow only, never account access.

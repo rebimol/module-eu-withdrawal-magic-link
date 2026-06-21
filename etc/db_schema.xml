@@ -9,14 +9,15 @@
         <column xsi:type="timestamp" name="expires_at" nullable="false" comment="Absolute TTL (admin-configurable lifetime, default 30d)"/>
         <column xsi:type="timestamp" name="first_accessed_at" nullable="true" comment="First click timestamp (audit)"/>
         <column xsi:type="timestamp" name="last_accessed_at" nullable="true" comment="Most recent click timestamp (audit)"/>
-        <column xsi:type="timestamp" name="used_at" nullable="true" comment="When token was consumed (single-use after confirm)"/>
+        <column xsi:type="timestamp" name="used_at" nullable="true" comment="Reserved (unused); tokens are multi-use within their lifetime"/>
         <column xsi:type="timestamp" name="revoked_at" nullable="true" comment="Admin revocation timestamp"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="token_id"/>
         </constraint>
-        <index referenceId="IDX_MM_EU_WITHDRAWAL_MAGIC_LINK_TOKEN_HASH" indexType="btree">
+        <constraint xsi:type="unique" referenceId="MM_EU_WITHDRAWAL_MAGIC_LINK_TOKEN_HASH_UNIQUE">
             <column name="token_hash"/>
-        </index>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="MM_EU_WD_MAGIC_LINK_ORDER_ID_SALES_ORDER_ENTITY_ID" table="mm_eu_withdrawal_magic_link" column="order_id" referenceTable="sales_order" referenceColumn="entity_id" onDelete="CASCADE"/>
         <index referenceId="IDX_MM_EU_WITHDRAWAL_MAGIC_LINK_ORDER_ID" indexType="btree">
             <column name="order_id"/>
         </index>
