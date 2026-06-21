@@ -1,3 +1,8 @@
+## 1.0.2
+
+- Fix: Token lifetime now respects the per-store-view "Token Lifetime" setting.
+* Other: Expired token records are cleaned up automatically by a daily job; the audit trail now logs one "used" event per link instead of per click.
+
 ## 1.0.1
 
 * Other: Aligned the EU Withdrawal core dependency requirement with the 2.x line.
