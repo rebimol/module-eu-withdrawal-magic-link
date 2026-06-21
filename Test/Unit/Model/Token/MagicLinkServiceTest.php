@@ -532,6 +532,38 @@ class MagicLinkServiceTest extends TestCase
         return $collection;
     }
 
+    public function testIssueForOrderReadsLifetimeForOrderStoreScope(): void
+    {
+        $model = $this->createMock(MagicLink::class);
+        $modelFactory = $this->createMock(MagicLinkFactory::class);
+        $modelFactory->method('create')->willReturn($model);
+
+        $resource = $this->createMock(MagicLinkResource::class);
+        $resource->expects(self::once())->method('save')->with($model);
+
+        $config = $this->createMock(MagicLinkConfig::class);
+        $config->expects(self::once())->method('getLifetimeDays')->with(7)->willReturn(10);
+
+        $collection = $this->createMock(Collection::class);
+        $collection->method('addFieldToFilter')->willReturnSelf();
+        $collection->method('getFirstItem')->willReturn(new \Magento\Framework\DataObject());
+        $collectionFactory = $this->createMock(CollectionFactory::class);
+        $collectionFactory->method('create')->willReturn($collection);
+
+        $captured = null;
+        $eventManager = $this->createMock(ManagerInterface::class);
+        $eventManager->method('dispatch')->willReturnCallback(
+            function (string $topic, array $payload) use (&$captured): void {
+                $captured = $payload;
+            }
+        );
+
+        $service = $this->makeService($modelFactory, $resource, $collectionFactory, $eventManager, $config);
+        $service->issueForOrder(555, 7);
+
+        self::assertSame(10 * 86400, $captured['ttl_seconds']);
+    }
+
     private function makeService(
         MagicLinkFactory $modelFactory,
         MagicLinkResource $resource,
