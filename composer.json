@@ -1,7 +1,7 @@
 {
   "name": "mageme/module-eu-withdrawal-magic-link",
   "description": "One-click guest withdrawal access via random magic-link tokens (configurable lifetime, 30-day default). Upgrades the withdrawal-CTA URL in order/shipment emails (shipped by the base module) from the lookup-form URL to a tokenised one-click variant. Pro tier UX add-on for mageme/module-eu-withdrawal. NOT legal advice — see README disclaimer; merchant is responsible for transactional-email compliance per jurisdiction.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "magento2-module",
   "license": "proprietary",
   "keywords": [

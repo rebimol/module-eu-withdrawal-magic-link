@@ -1,3 +1,7 @@
+## 1.0.3
+
+* Other: Corrected the database schema whitelist to match the table's real index and constraint names.
+
 ## 1.0.2
 
 - Fix: Token lifetime now respects the per-store-view "Token Lifetime" setting.
