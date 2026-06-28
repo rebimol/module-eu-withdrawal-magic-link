@@ -12,12 +12,11 @@
             "revoked_at": true
         },
         "index": {
-            "MM_EU_WITHDRAWAL_MAGIC_LINK_TOKEN_HASH": true,
-            "MM_EU_WITHDRAWAL_MAGIC_LINK_ORDER_ID": true
+            "IDX_MM_EU_WITHDRAWAL_MAGIC_LINK_ORDER_ID": true
         },
         "constraint": {
             "PRIMARY": true,
-            "MM_EU_WITHDRAWAL_MAGIC_LINK_TOKEN_HASH": true
+            "MM_EU_WITHDRAWAL_MAGIC_LINK_TOKEN_HASH_UNIQUE": true
         }
     }
 }
