@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace MageMe\EUWithdrawalMagicLink\Test\Unit\Model\Token;
 
-use MageMe\EUWithdrawalMagicLink\Api\Data\MagicLinkInterface;
 use MageMe\EUWithdrawalMagicLink\Model\Config\MagicLinkConfig;
 use MageMe\EUWithdrawalMagicLink\Model\MagicLink;
 use MageMe\EUWithdrawalMagicLink\Model\MagicLinkFactory;
@@ -288,248 +287,35 @@ class MagicLinkServiceTest extends TestCase
         self::assertNull($service->resolveOrder('bogus-token'));
     }
 
-    public function testIssueOrReuseRevokesExistingUsableRowAndIssuesFresh(): void
+    public function testIssueOrReuseDoesNotRevokePriorTokens(): void
     {
-        $staleRow = $this->createMock(MagicLink::class);
-        $staleRow->expects(self::once())->method('setRevokedAt')->with(self::isType('string'));
-
+        // Issuing (or re-issuing) a link never revokes a prior token: earlier
+        // links stay valid until their own expiry. A token is invalidated only
+        // by its absolute TTL or an explicit admin revoke().
         $newRow = $this->createMock(MagicLink::class);
-
-        $collection = $this->makeIterableCollectionMock([$staleRow]);
-        $collectionFactory = $this->createMock(CollectionFactory::class);
-        $collectionFactory->method('create')->willReturn($collection);
 
         $modelFactory = $this->createMock(MagicLinkFactory::class);
         $modelFactory->method('create')->willReturn($newRow);
 
-        $resource = $this->createMock(MagicLinkResource::class);
-        // Two saves: the stale row being revoked + the new row being persisted.
-        $resource->expects(self::exactly(2))->method('save');
-
-        $eventManager = $this->createMock(ManagerInterface::class);
-        $eventManager->expects(self::once())
-            ->method('dispatch')
-            ->with('mageme_eu_withdrawal_audit_token_issued', self::isType('array'));
-
-        $service = $this->makeService($modelFactory, $resource, $collectionFactory, $eventManager);
-
-        $plain = $service->issueOrReuseForOrder(777);
-
-        self::assertNotEmpty($plain);
-    }
-
-    public function testIssueOrReuseRevokesMultipleStaleRows(): void
-    {
-        $stale = [];
-        for ($i = 0; $i < 3; $i++) {
-            $row = $this->createMock(MagicLink::class);
-            $row->expects(self::once())->method('setRevokedAt')->with(self::isType('string'));
-            $stale[] = $row;
-        }
-
-        $newRow = $this->createMock(MagicLink::class);
-
-        $collection = $this->makeIterableCollectionMock($stale);
+        // No prior rows are queried and none are revoked - only the fresh issue.
         $collectionFactory = $this->createMock(CollectionFactory::class);
-        $collectionFactory->method('create')->willReturn($collection);
-
-        $modelFactory = $this->createMock(MagicLinkFactory::class);
-        $modelFactory->method('create')->willReturn($newRow);
-
-        $resource = $this->createMock(MagicLinkResource::class);
-        // 3 revokes + 1 fresh issue.
-        $resource->expects(self::exactly(4))->method('save');
-
-        $service = $this->makeService($modelFactory, $resource, $collectionFactory);
-
-        self::assertNotEmpty($service->issueOrReuseForOrder(777));
-    }
-
-    public function testIssueOrReuseIgnoresRevokedRows(): void
-    {
-        // Only one usable row is returned — the DB filter excludes the revoked
-        // one via addFieldToFilter('revoked_at', ['null' => true]). Assert that
-        // exact filter clause is applied.
-        $usableRow = $this->createMock(MagicLink::class);
-        $usableRow->expects(self::once())->method('setRevokedAt')->with(self::isType('string'));
-
-        $newRow = $this->createMock(MagicLink::class);
-
-        $filterCalls = [];
-        $collection = $this->makeIterableCollectionMock([$usableRow], $filterCalls);
-        $collectionFactory = $this->createMock(CollectionFactory::class);
-        $collectionFactory->method('create')->willReturn($collection);
-
-        $modelFactory = $this->createMock(MagicLinkFactory::class);
-        $modelFactory->method('create')->willReturn($newRow);
-
-        $resource = $this->createMock(MagicLinkResource::class);
-
-        $service = $this->makeService($modelFactory, $resource, $collectionFactory);
-
-        $service->issueOrReuseForOrder(777);
-
-        // Verify the revoke filter chain: revoked_at IS NULL must be present.
-        $revokedNullFilter = array_filter(
-            $filterCalls,
-            static fn ($call) => $call[0] === MagicLinkInterface::REVOKED_AT
-                && is_array($call[1])
-                && ($call[1]['null'] ?? null) === true,
-        );
-        self::assertNotEmpty($revokedNullFilter, 'revoked_at IS NULL filter must be applied');
-    }
-
-    public function testIssueOrReuseIgnoresUsedRows(): void
-    {
-        // Used rows are excluded by the DB filter — collection returns empty.
-        $newRow = $this->createMock(MagicLink::class);
-
-        $filterCalls = [];
-        $collection = $this->makeIterableCollectionMock([], $filterCalls);
-        $collectionFactory = $this->createMock(CollectionFactory::class);
-        $collectionFactory->method('create')->willReturn($collection);
-
-        $modelFactory = $this->createMock(MagicLinkFactory::class);
-        $modelFactory->method('create')->willReturn($newRow);
-
-        $resource = $this->createMock(MagicLinkResource::class);
-        // No revokes — only the single fresh issue.
-        $resource->expects(self::once())->method('save');
-
-        $service = $this->makeService($modelFactory, $resource, $collectionFactory);
-
-        self::assertNotEmpty($service->issueOrReuseForOrder(777));
-
-        $usedNullFilter = array_filter(
-            $filterCalls,
-            static fn ($call) => $call[0] === MagicLinkInterface::USED_AT
-                && is_array($call[1])
-                && ($call[1]['null'] ?? null) === true,
-        );
-        self::assertNotEmpty($usedNullFilter, 'used_at IS NULL filter must be applied');
-    }
-
-    public function testIssueOrReuseIgnoresExpiredRows(): void
-    {
-        // Expired rows excluded via expires_at > NOW() — collection returns empty.
-        $newRow = $this->createMock(MagicLink::class);
-
-        $filterCalls = [];
-        $collection = $this->makeIterableCollectionMock([], $filterCalls);
-        $collectionFactory = $this->createMock(CollectionFactory::class);
-        $collectionFactory->method('create')->willReturn($collection);
-
-        $modelFactory = $this->createMock(MagicLinkFactory::class);
-        $modelFactory->method('create')->willReturn($newRow);
+        $collectionFactory->expects(self::never())->method('create');
 
         $resource = $this->createMock(MagicLinkResource::class);
         $resource->expects(self::once())->method('save');
 
-        $service = $this->makeService($modelFactory, $resource, $collectionFactory);
-
-        self::assertNotEmpty($service->issueOrReuseForOrder(777));
-
-        $expiresGtFilter = array_filter(
-            $filterCalls,
-            static fn ($call) => $call[0] === MagicLinkInterface::EXPIRES_AT
-                && is_array($call[1])
-                && isset($call[1]['gt']),
-        );
-        self::assertNotEmpty($expiresGtFilter, 'expires_at > NOW() filter must be applied');
-    }
-
-    public function testIssueOrReuseAppliesGraceWindowFilterOnCreatedAt(): void
-    {
-        // The revoke filter must include `issued_at < NOW - REVOKE_GRACE_SECONDS`
-        // so close-spaced re-sends (e.g. order + shipment email seconds apart)
-        // keep the prior row usable and the customer's first-opened email works.
-        $newRow = $this->createMock(MagicLink::class);
-
-        $filterCalls = [];
-        $collection = $this->makeIterableCollectionMock([], $filterCalls);
-        $collectionFactory = $this->createMock(CollectionFactory::class);
-        $collectionFactory->method('create')->willReturn($collection);
-
-        $modelFactory = $this->createMock(MagicLinkFactory::class);
-        $modelFactory->method('create')->willReturn($newRow);
-
-        $resource = $this->createMock(MagicLinkResource::class);
-
-        $service = $this->makeService($modelFactory, $resource, $collectionFactory);
-
-        $before = time();
-        $service->issueOrReuseForOrder(777);
-        $after = time();
-
-        $graceFilter = array_values(array_filter(
-            $filterCalls,
-            static fn ($call) => $call[0] === MagicLinkInterface::ISSUED_AT
-                && is_array($call[1])
-                && isset($call[1]['lt']),
-        ));
-        self::assertNotEmpty($graceFilter, 'issued_at < NOW - grace filter must be applied');
-        $cutoffTs = (new \DateTimeImmutable((string) $graceFilter[0][1]['lt'], new \DateTimeZone('UTC')))->getTimestamp();
-        self::assertGreaterThanOrEqual($before - \MageMe\EUWithdrawalMagicLink\Model\Token\MagicLinkService::REVOKE_GRACE_SECONDS - 1, $cutoffTs);
-        self::assertLessThanOrEqual($after - \MageMe\EUWithdrawalMagicLink\Model\Token\MagicLinkService::REVOKE_GRACE_SECONDS + 1, $cutoffTs);
-    }
-
-    public function testIssueOrReuseCallsIssueForOrderExactlyOnce(): void
-    {
-        // Even when multiple stale rows are revoked, only ONE token_issued
-        // audit event fires (from the single fresh issueForOrder call).
-        $stale = [];
-        for ($i = 0; $i < 3; $i++) {
-            $row = $this->createMock(MagicLink::class);
-            $row->method('setRevokedAt');
-            $stale[] = $row;
-        }
-
-        $newRow = $this->createMock(MagicLink::class);
-
-        $collection = $this->makeIterableCollectionMock($stale);
-        $collectionFactory = $this->createMock(CollectionFactory::class);
-        $collectionFactory->method('create')->willReturn($collection);
-
-        $modelFactory = $this->createMock(MagicLinkFactory::class);
-        $modelFactory->method('create')->willReturn($newRow);
-
-        $resource = $this->createMock(MagicLinkResource::class);
-
-        $dispatchedTopics = [];
+        $dispatched = [];
         $eventManager = $this->createMock(ManagerInterface::class);
         $eventManager->expects(self::once())
             ->method('dispatch')
-            ->willReturnCallback(function (string $topic) use (&$dispatchedTopics): void {
-                $dispatchedTopics[] = $topic;
+            ->willReturnCallback(function (string $topic) use (&$dispatched): void {
+                $dispatched[] = $topic;
             });
 
         $service = $this->makeService($modelFactory, $resource, $collectionFactory, $eventManager);
 
-        $service->issueOrReuseForOrder(777);
-
-        self::assertSame(['mageme_eu_withdrawal_audit_token_issued'], $dispatchedTopics);
-    }
-
-    /**
-     * Build a Collection mock that is iterable and records addFieldToFilter args.
-     *
-     * @param array<int, \PHPUnit\Framework\MockObject\MockObject> $rows
-     * @param array<int, array{0: string, 1: mixed}>               $filterCalls
-     */
-    private function makeIterableCollectionMock(array $rows, array &$filterCalls = []): Collection
-    {
-        $collection = $this->getMockBuilder(Collection::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['addFieldToFilter', 'getIterator', 'getFirstItem'])
-            ->getMock();
-        $collection->method('addFieldToFilter')
-            ->willReturnCallback(function (string $field, $cond) use (&$filterCalls, $collection) {
-                $filterCalls[] = [$field, $cond];
-                return $collection;
-            });
-        $collection->method('getIterator')->willReturn(new \ArrayIterator($rows));
-        $collection->method('getFirstItem')->willReturn(new \Magento\Framework\DataObject());
-        return $collection;
+        self::assertNotEmpty($service->issueOrReuseForOrder(777));
+        self::assertSame(['mageme_eu_withdrawal_audit_token_issued'], $dispatched);
     }
 
     public function testIssueForOrderReadsLifetimeForOrderStoreScope(): void

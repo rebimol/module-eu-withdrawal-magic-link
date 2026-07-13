@@ -1,3 +1,7 @@
+## 1.0.4
+
+- Fix: A withdrawal magic link now keeps working until it expires; issuing a new link (from a later order or shipment email, or a new request) no longer invalidates an earlier link the customer may still be using.
+
 ## 1.0.3
 
 * Other: Corrected the database schema whitelist to match the table's real index and constraint names.

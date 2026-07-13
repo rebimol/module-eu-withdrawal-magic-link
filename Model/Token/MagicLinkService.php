@@ -29,8 +29,6 @@ use Magento\Framework\Event\ManagerInterface;
  */
 class MagicLinkService implements MagicLinkServiceInterface
 {
-    public const REVOKE_GRACE_SECONDS = 300;
-
     /**
      * Constructor.
      *
@@ -82,49 +80,24 @@ class MagicLinkService implements MagicLinkServiceInterface
         return $plain;
     }
 
-    /*
-     * Revoke-and-reissue semantics: plain tokens exist only as SHA-256 hashes
-     * in token_hash, so the original plaintext cannot be resurfaced on a
-     * re-send. Revoking stale usable rows before issuing a fresh one preserves
-     * DB hygiene across unbounded email re-sends.
+    /**
+     * Issue a link for the order.
      *
-     * A REVOKE_GRACE_SECONDS window (5 minutes) on issued_at prevents a
-     * close-spaced send from killing the prior email's token mid-flight — e.g.
-     * order-confirmation + shipment-notification fired seconds apart; the
-     * customer opens the confirmation email hours later and the link still
-     * works. Distant re-sends (hours/days) still get their old rows revoked.
+     * A re-send — order + shipment email, an admin resend, a repeat request —
+     * mints a new token and leaves every previously issued token untouched:
+     * each link stays valid until its own expiry. Tokens are stored only as
+     * SHA-256 hashes, so a prior plaintext can never be resurfaced for reuse; a
+     * fresh issue is the only way to hand out a working link. Earlier links are
+     * invalidated solely by their absolute TTL (or an explicit admin revoke),
+     * never by the act of issuing another.
      *
-     * Do NOT "optimise" this to reuse an existing row — that would require
-     * storing plaintext, which violates the hash-only storage model.
+     * @param int $orderEntityId
+     * @param ?int $storeId
+     * @return string
      */
     public function issueOrReuseForOrder(int $orderEntityId, ?int $storeId = null): string
     {
-        $this->revokeStaleUsableRowsForOrder($orderEntityId);
         return $this->issueForOrder($orderEntityId, $storeId);
-    }
-
-    /**
-     * Revoke stale usable rows for order.
-     *
-     * @param int $orderEntityId
-     * @return void
-     */
-    private function revokeStaleUsableRowsForOrder(int $orderEntityId): void
-    {
-        $now = time();
-        $collection = $this->collectionFactory->create();
-        $collection->addFieldToFilter(MagicLinkInterface::ORDER_ID, $orderEntityId)
-            ->addFieldToFilter(MagicLinkInterface::REVOKED_AT, ['null' => true])
-            ->addFieldToFilter(MagicLinkInterface::USED_AT, ['null' => true])
-            ->addFieldToFilter(MagicLinkInterface::EXPIRES_AT, ['gt' => gmdate('Y-m-d H:i:s', $now)])
-            ->addFieldToFilter(MagicLinkInterface::ISSUED_AT, ['lt' => gmdate('Y-m-d H:i:s', $now - self::REVOKE_GRACE_SECONDS)]);
-
-        $revokedAt = gmdate('Y-m-d H:i:s', $now);
-        foreach ($collection as $row) {
-            /** @var \MageMe\EUWithdrawalMagicLink\Model\MagicLink $row */
-            $row->setRevokedAt($revokedAt);
-            $this->resource->save($row);
-        }
     }
 
     /**
