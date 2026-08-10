@@ -1,3 +1,7 @@
+## 1.0.5
+
+- Fix: Updating from version 1.0.1 or earlier no longer fails during setup upgrade with a "Duplicate key name" database error.
+
 ## 1.0.4
 
 - Fix: A withdrawal magic link now keeps working until it expires; issuing a new link (from a later order or shipment email, or a new request) no longer invalidates an earlier link the customer may still be using.
